@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.streamlit/
+data/raw/
+data/cache/
+data/manifest.local.yaml
+experiments/logs/*.jsonl
+*.nc
+*.zarr/

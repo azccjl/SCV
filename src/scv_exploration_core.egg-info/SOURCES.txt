@@ -1,0 +1,12 @@
+README.md
+pyproject.toml
+src/scv_core/__init__.py
+src/scv_core/actions.py
+src/scv_core/evidence.py
+src/scv_core/history.py
+src/scv_core/state.py
+src/scv_exploration_core.egg-info/PKG-INFO
+src/scv_exploration_core.egg-info/SOURCES.txt
+src/scv_exploration_core.egg-info/dependency_links.txt
+src/scv_exploration_core.egg-info/top_level.txt
+tests/test_core.py

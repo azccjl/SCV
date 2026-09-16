@@ -1,0 +1,17 @@
+dataset: NEX-GDDP-CMIP6
+source_url: https://sciviscontest2026.github.io/data/home#data3
+provider_url: https://planetarycomputer.microsoft.com/dataset/nasa-nex-gddp-cmip6#overview
+description: "Small-subset configuration for local prototyping; no data is downloaded automatically."
+model: MRI-ESM2-0
+scenario: historical
+variables:
+  tas: {unit: K, standard_name: near-surface air temperature}
+  pr: {unit: kg m-2 s-1, standard_name: precipitation}
+  sfcWind: {unit: m s-1, standard_name: daily-mean near-surface wind speed}
+  hurs: {unit: "%", standard_name: near-surface relative humidity}
+region: {lon: [130, 150], lat: [25, 40]}
+time: {start: "2000-01-01", end: "2010-12-31", aggregation: monthly}
+storage:
+  raw_dir: data/raw
+  cache_dir: data/cache
+  local_netcdf: null

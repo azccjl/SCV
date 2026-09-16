@@ -1,0 +1,6 @@
+numpy>=2.0
+pandas>=3.0
+pyyaml>=6.0
+xarray>=2025.1
+netCDF4>=1.7
+streamlit>=1.40
