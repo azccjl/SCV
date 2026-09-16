@@ -22,13 +22,22 @@ def compute_evidence(frame: pd.DataFrame, state: AnalysisState) -> Evidence:
     la, lb = state.region["lat"]
     data = data[data.time.between(start, end) & data.lon.between(lo, hi) & data.lat.between(la, lb)]
     group = data.groupby("time", as_index=False)[state.variables].mean(numeric_only=True)
+    group = group.set_index("time").sort_index()
+    if state.time.get("aggregation") == "monthly":
+        group = group.resample("MS").mean()
+    elif state.time.get("aggregation") == "seasonal":
+        group = group.resample("QS-DEC").mean()
+    group = group.reset_index()
     for variable in state.variables:
         group[f"{variable}_anomaly"] = group[variable] - group[variable].mean()
     metrics: dict[str, float] = {"mean_abs_anomaly": 0.0, "correlation": 0.0}
     if state.variables:
         metrics["mean_abs_anomaly"] = float(group[f"{state.variables[0]}_anomaly"].abs().mean())
     if len(state.variables) >= 2:
-        metrics["correlation"] = _safe_corr(group[state.variables[0]], group[state.variables[1]])
+        if state.operation == "lagged_correlation":
+            metrics["correlation"] = _safe_corr(group[state.variables[0]], group[state.variables[1]].shift(1))
+        else:
+            metrics["correlation"] = _safe_corr(group[state.variables[0]], group[state.variables[1]])
     missing = float(data[state.variables].isna().mean().mean()) if len(data) else 1.0
     warnings = []
     if len(group) < 12:

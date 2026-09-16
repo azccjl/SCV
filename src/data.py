@@ -42,11 +42,11 @@ def load_local_netcdf(path: str | Path) -> DatasetBundle:
     """Load a local NetCDF without requiring a network download."""
     import xarray as xr
 
-    ds = xr.open_dataset(path)
-    available = [v for v in VARIABLES if v in ds]
-    if not available:
-        raise ValueError(f"No supported variables found in {path}; expected one of {VARIABLES}")
-    frame = ds[available].to_dataframe().reset_index()
+    with xr.open_dataset(path) as ds:
+        available = [v for v in VARIABLES if v in ds]
+        if not available:
+            raise ValueError(f"No supported variables found in {path}; expected one of {VARIABLES}")
+        frame = ds[available].to_dataframe().reset_index()
     for col in ["time", "lon", "lat"]:
         if col not in frame:
             aliases = {"lon": "longitude", "lat": "latitude"}
@@ -55,3 +55,16 @@ def load_local_netcdf(path: str | Path) -> DatasetBundle:
             else:
                 raise ValueError(f"NetCDF is missing coordinate {col}")
     return DatasetBundle(frame, str(path), {"variables": ",".join(available)})
+
+
+def find_local_bundle(directory: str | Path = r"D:\datatask") -> DatasetBundle | None:
+    """Return the newest readable local file containing both core variables."""
+    paths = sorted(Path(directory).glob("*.nc"), key=lambda item: item.stat().st_mtime, reverse=True)
+    for path in paths:
+        try:
+            bundle = load_local_netcdf(path)
+        except (OSError, ValueError):
+            continue
+        if {"tas", "pr"}.issubset(bundle.frame.columns):
+            return bundle
+    return None
