@@ -2,6 +2,9 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .streamlit/
+.venv/
+work_streamlit*.log
+tmp/
 data/raw/
 data/cache/
 data/manifest.local.yaml

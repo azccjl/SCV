@@ -31,6 +31,10 @@ def rank_candidates(bundle: DatasetBundle, state: AnalysisState, actions: list[A
         cost = min(1.0, (evidence.sample_count * max(1, len(next_state.variables))) / 30000)
         scores = {"relevance": relevance, "information_gain": information, "novelty": novelty, "evidence_stability": stability, "normalized_cost": cost}
         score = 0.30 * relevance + 0.25 * information + 0.15 * novelty + 0.15 * stability + 0.15 * (1 - cost)
-        reason = f"{action.label}；相关性 {relevance:.2f}，证据稳定性 {stability:.2f}，预估成本 {cost:.2f}"
+        reason = (
+            f"{action.label}。目标匹配度 {relevance:.2f}，"
+            f"预期信息增益 {information:.2f}，证据稳定性 {stability:.2f}，"
+            f"预估计算成本 {cost:.2f}。"
+        )
         candidates.append(Candidate(action, next_state, evidence, scores, score, reason))
     return sorted(candidates, key=lambda item: item.score, reverse=True)
