@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import altair as alt
@@ -23,7 +24,8 @@ from src.ranking import rank_candidates
 from src.state import AnalysisState
 
 
-DATA_DIR = Path(r"D:\datatask")
+_default_data_dir = Path(__file__).resolve().parent / "data" / "local"
+DATA_DIR = Path(os.environ.get("SCV_DATA_DIR", str(_default_data_dir)))
 SCENARIO_LABELS = {"historical": "历史模拟", "ssp245": "SSP2-4.5", "ssp585": "SSP5-8.5"}
 SCENARIO_COLORS = {"historical": "#60666b", "ssp245": "#16877c", "ssp585": "#c6503e"}
 
