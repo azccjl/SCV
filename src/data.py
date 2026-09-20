@@ -58,6 +58,19 @@ def _standardize_units(frame: pd.DataFrame) -> pd.DataFrame:
     return frame
 
 
+def _standardize_time(frame: pd.DataFrame) -> pd.DataFrame:
+    """Convert supported climate calendars to timestamps used by the UI."""
+    frame = frame.copy()
+    if pd.api.types.is_datetime64_any_dtype(frame["time"]):
+        return frame
+    frame["time"] = frame["time"].map(
+        lambda value: pd.Timestamp(value.isoformat())
+        if hasattr(value, "isoformat")
+        else pd.Timestamp(value)
+    )
+    return frame
+
+
 def synthetic_bundle(seed: int = 7, periods: int = 132) -> DatasetBundle:
     """Create a deterministic, small climate-like dataset for local demos/tests."""
     rng = np.random.default_rng(seed)
@@ -135,7 +148,7 @@ def load_local_netcdf(path: str | Path) -> DatasetBundle:
                 frame[col] = frame[aliases[col]]
             else:
                 raise ValueError(f"NetCDF is missing coordinate {col}")
-    frame = _standardize_units(frame)
+    frame = _standardize_time(_standardize_units(frame))
     metadata: dict[str, object] = {"variables": available, "units": {v: VARIABLE_UNITS[v] for v in available}}
     metadata.update(manifest)
     return DatasetBundle(frame, str(path), metadata)

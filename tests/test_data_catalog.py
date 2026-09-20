@@ -47,3 +47,17 @@ def test_loading_normalizes_units_and_summary_stays_compact(tmp_path):
     assert bundle.frame["pr"].mean() == pytest.approx(0.864)
     assert len(summary) == 1
     assert summary.loc[0, "tas_coverage"] == 1.0
+
+
+def test_loading_converts_noleap_calendar_for_pandas_and_charts(tmp_path):
+    path = tmp_path / "nex_MRI-ESM2-0_historical_2010_subset.nc"
+    times = xr.date_range("2010-01-01", periods=2, calendar="noleap", use_cftime=True)
+    xr.Dataset(
+        {"tas": (("time", "lat", "lon"), np.full((2, 1, 1), 300.0))},
+        coords={"time": times, "lat": [25.0], "lon": [130.0]},
+    ).to_netcdf(path)
+
+    bundle = load_local_netcdf(path)
+
+    assert pd.api.types.is_datetime64_any_dtype(bundle.frame["time"])
+    assert bundle.frame["time"].min() == pd.Timestamp("2010-01-01")
