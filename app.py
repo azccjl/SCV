@@ -44,7 +44,7 @@ st.markdown(
 )
 st.markdown(
     """<div class="app-head"><h1>气候探索推荐器</h1>
-    <p>识别候选变化，解释情景与模型差异，再验证证据是否稳健。</p></div>""",
+    <p>识别变化 · 解释差异 · 验证证据</p></div>""",
     unsafe_allow_html=True,
 )
 
@@ -145,7 +145,6 @@ with st.sidebar:
 
     available_variables = [name for name in VARIABLE_LABELS if name in bundle.frame]
     selected_variable = st.selectbox("主要变量", available_variables, format_func=lambda value: VARIABLE_LABELS[value])
-    st.caption("所有筛选都会重算图表与证据；投影情景不是天气预测。")
     completed_downloads, planned_downloads, current_download = batch_progress()
     if planned_downloads:
         st.divider()
@@ -180,7 +179,7 @@ inventory[3].metric("占用空间", f"{total_size / 1024**2:.1f} MB")
 if records:
     st.success(f"当前详细数据：{selected_record.label}；{', '.join(selected_record.variables)}")
     if selected_record.scenario != "historical":
-        st.markdown('<div class="warning-note"><strong>阅读提示：</strong>SSP 是条件性气候投影，不是对某一年天气的确定预测。结论应同时查看多个模式与历史基准。</div>', unsafe_allow_html=True)
+        st.markdown('<div class="warning-note">SSP 是条件性气候投影，不是确定的天气预测。</div>', unsafe_allow_html=True)
 
 tab_identify, tab_interpret, tab_validate, tab_next = st.tabs(["识别变化", "解释差异", "验证稳健性", "下一步推荐"])
 
@@ -216,7 +215,7 @@ with tab_identify:
             tooltip=[alt.Tooltip("time:T", title="月份"), alt.Tooltip("label:N", title="变量"), alt.Tooltip("value:Q", title="区域平均", format=".3f")],
         ).properties(height=180).facet(row=alt.Row("label:N", title=None)).resolve_scale(y="independent")
         st.altair_chart(line, width="stretch")
-        st.caption("月平均保留季节循环。不同变量使用独立纵轴，不能用线条高度直接比较量级。")
+        st.caption("各变量使用独立纵轴。")
 
     spatial = current_frame.groupby(["lon", "lat"], as_index=False)[selected_variable].mean().dropna()
     if not spatial.empty:
@@ -226,7 +225,7 @@ with tab_identify:
             tooltip=[alt.Tooltip("lon:Q", title="经度"), alt.Tooltip("lat:Q", title="纬度"), alt.Tooltip(f"{selected_variable}:Q", title=primary_label, format=".3f")],
         ).properties(height=340)
         st.altair_chart(spatial_chart, width="stretch")
-        st.caption("全年平均空间分布；空白是缺测，不代表零值。")
+        st.caption("空白区域表示缺测。")
 
     if records:
         availability = pd.DataFrame([{"model": r.model, "scenario": SCENARIO_LABELS.get(r.scenario, r.scenario), "year": r.year} for r in records])
@@ -260,7 +259,7 @@ with tab_interpret:
             tooltip=["model:N", alt.Tooltip("scenario_label:N", title="情景"), alt.Tooltip("year:Q", title="年份", format="d"), alt.Tooltip(f"{selected_variable}:Q", title=primary_label, format=".3f")],
         ).properties(height=360)
         st.altair_chart(annual, width="stretch")
-        st.caption("每条线代表一个气候模式。跨模式结论应关注方向是否一致，而不只看集合平均。")
+        st.caption("线型区分气候模式。")
 
         future = summary[(summary.scenario != "historical") & summary.anomaly.notna()].copy()
         if future.empty:
@@ -281,7 +280,7 @@ with tab_interpret:
                 tooltip=[alt.Tooltip("scenario_label:N", title="情景"), alt.Tooltip("year:Q", title="年份", format="d"), alt.Tooltip("median:Q", title="中位变化", format="+.3f"), alt.Tooltip("positive:Q", title="正变化模式比例", format=".0%"), alt.Tooltip("models:Q", title="模式数")],
             )
             st.altair_chart((band + median).properties(height=300), width="stretch")
-            st.caption("实线是跨模式中位数，带状区是四分位范围。同向模式比例越高，方向性证据越一致；这仍不消除情景与模型不确定性。")
+            st.caption("实线：模式中位数；带状区：四分位范围。")
             st.download_button("下载当前比较表", summary.to_csv(index=False).encode("utf-8-sig"), "scv_comparison.csv", "text/csv")
 
 with tab_validate:
@@ -294,16 +293,7 @@ with tab_validate:
     checks[3].metric("计算耗时", f"{evidence.runtime_ms:.0f} ms")
     for warning in evidence.warnings:
         st.warning(warning)
-    st.markdown(
-        """
-        **验证清单**
-
-        1. 用至少两个未来情景检查方向是否一致，并明确情景之间何时分叉。
-        2. 用多个模式检查结论是否由单一模式驱动，同时报告中位数、离散范围和同向比例。
-        3. 更换历史基准期、季节和空间范围，确认结论不是参数选择造成。
-        4. 回到日尺度或格点尺度核查极端事件，避免把年均变化等同于风险变化。
-        """
-    )
+    st.caption("建议交叉检查情景、模式、时间范围和空间范围。")
     if not summary.empty:
         display_columns = [name for name in ["model", "scenario_label", "year", selected_variable, f"{selected_variable}_coverage"] if name in summary]
         st.dataframe(summary[display_columns].sort_values(["model", "year"]), hide_index=True, width="stretch")
@@ -323,7 +313,7 @@ with tab_next:
         with st.container(border=True):
             st.markdown(f"**{index + 1}. {candidate.action.label}**")
             st.write(candidate.reason)
-            st.caption(f"选择后预计有 {candidate.evidence.sample_count} 个聚合周期，缺测比例 {candidate.evidence.missing_fraction:.1%}。推荐分数是排序线索，不是科学真值。")
+            st.caption(f"预计 {candidate.evidence.sample_count} 个聚合周期 · 缺测 {candidate.evidence.missing_fraction:.1%}")
             if st.button("采用并重新计算", key=f"accept-{index}"):
                 st.session_state.history.append({"before_state": state.to_dict(), "action": candidate.action.label, "score": candidate.score})
                 st.session_state.state = candidate.state
@@ -335,5 +325,3 @@ with tab_next:
             last = st.session_state.history.pop()
             st.session_state.state = AnalysisState(**last["before_state"])
             st.rerun()
-    else:
-        st.info("还没有采用推荐。系统只给出少量候选，最终选择保留给分析者。")
