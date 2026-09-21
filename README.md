@@ -49,4 +49,10 @@ python scripts/download_nex_batch.py --variables tas pr --models MRI-ESM2-0 GFDL
 python scripts/download_nex_batch.py --profile anchors --variables tas pr --models MRI-ESM2-0 GFDL-ESM4 MIROC6
 ```
 
+需要连续数十年样本时，可下载单个模式的紧凑年代方案：历史期 2000–2014、SSP2-4.5 与 SSP5-8.5 的 2030–2044。45 个年度切片最终约占 75–90 MB，但源文件总传输量约 16–18 GB：
+
+```powershell
+python scripts/download_nex_batch.py --profile decades --variables tas pr --models MRI-ESM2-0
+```
+
 下载器会保留未完成的 `.partial` 文件并使用 HTTP Range 续传。每个任务有独立超时与重试，进度账本写入 `D:\datatask\batch_anchors_status.json`。

@@ -20,6 +20,11 @@ ANCHOR_PERIODS = {
     "ssp245": [2035],
     "ssp585": [2035],
 }
+DECADES_PERIODS = {
+    "historical": range(2000, 2015),
+    "ssp245": range(2030, 2045),
+    "ssp585": range(2030, 2045),
+}
 
 
 def build_tasks(models: list[str], variables: list[str], periods: dict[str, object] | None = None) -> list[dict[str, object]]:
@@ -43,13 +48,17 @@ def main() -> None:
     parser.add_argument("--retry-delay", type=int, default=20)
     parser.add_argument("--retries", type=int, default=2, help="Retries for each model/scenario/year task")
     parser.add_argument("--timeout-minutes", type=int, default=30)
-    parser.add_argument("--profile", choices=["full", "anchors"], default="full")
+    parser.add_argument("--profile", choices=["full", "anchors", "decades"], default="full")
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     ledger_path = out_dir / f"batch_{args.profile}_status.json"
-    periods = ANCHOR_PERIODS if args.profile == "anchors" else PERIODS
+    periods = {
+        "anchors": ANCHOR_PERIODS,
+        "decades": DECADES_PERIODS,
+        "full": PERIODS,
+    }[args.profile]
     tasks = build_tasks(args.models, args.variables, periods)
     if args.max_files:
         tasks = tasks[: args.max_files]

@@ -215,7 +215,6 @@ with tab_identify:
             tooltip=[alt.Tooltip("time:T", title="月份"), alt.Tooltip("label:N", title="变量"), alt.Tooltip("value:Q", title="区域平均", format=".3f")],
         ).properties(height=180).facet(row=alt.Row("label:N", title=None)).resolve_scale(y="independent")
         st.altair_chart(line, width="stretch")
-        st.caption("各变量使用独立纵轴。")
 
     spatial = current_frame.groupby(["lon", "lat"], as_index=False)[selected_variable].mean().dropna()
     if not spatial.empty:
@@ -225,7 +224,6 @@ with tab_identify:
             tooltip=[alt.Tooltip("lon:Q", title="经度"), alt.Tooltip("lat:Q", title="纬度"), alt.Tooltip(f"{selected_variable}:Q", title=primary_label, format=".3f")],
         ).properties(height=340)
         st.altair_chart(spatial_chart, width="stretch")
-        st.caption("空白区域表示缺测。")
 
     if records:
         availability = pd.DataFrame([{"model": r.model, "scenario": SCENARIO_LABELS.get(r.scenario, r.scenario), "year": r.year} for r in records])
@@ -259,7 +257,6 @@ with tab_interpret:
             tooltip=["model:N", alt.Tooltip("scenario_label:N", title="情景"), alt.Tooltip("year:Q", title="年份", format="d"), alt.Tooltip(f"{selected_variable}:Q", title=primary_label, format=".3f")],
         ).properties(height=360)
         st.altair_chart(annual, width="stretch")
-        st.caption("线型区分气候模式。")
 
         future = summary[(summary.scenario != "historical") & summary.anomaly.notna()].copy()
         if future.empty:
@@ -280,7 +277,6 @@ with tab_interpret:
                 tooltip=[alt.Tooltip("scenario_label:N", title="情景"), alt.Tooltip("year:Q", title="年份", format="d"), alt.Tooltip("median:Q", title="中位变化", format="+.3f"), alt.Tooltip("positive:Q", title="正变化模式比例", format=".0%"), alt.Tooltip("models:Q", title="模式数")],
             )
             st.altair_chart((band + median).properties(height=300), width="stretch")
-            st.caption("实线：模式中位数；带状区：四分位范围。")
             st.download_button("下载当前比较表", summary.to_csv(index=False).encode("utf-8-sig"), "scv_comparison.csv", "text/csv")
 
 with tab_validate:
@@ -293,7 +289,6 @@ with tab_validate:
     checks[3].metric("计算耗时", f"{evidence.runtime_ms:.0f} ms")
     for warning in evidence.warnings:
         st.warning(warning)
-    st.caption("建议交叉检查情景、模式、时间范围和空间范围。")
     if not summary.empty:
         display_columns = [name for name in ["model", "scenario_label", "year", selected_variable, f"{selected_variable}_coverage"] if name in summary]
         st.dataframe(summary[display_columns].sort_values(["model", "year"]), hide_index=True, width="stretch")
